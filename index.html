@@ -87,7 +87,7 @@
 </head>
 <body>
 
-<!-- ПУСТАЯ панель закладок -->
+<!-- ПУСТЫЕ закладки -->
 <div id="bookmarks"></div>
 
 <div class="center">
@@ -106,7 +106,10 @@
 <script>
     let engine = "google";
 
-    // Смена поисковиков
+    // --------------------------
+    // ВЫБОР ПОИСКОВИКА
+    // --------------------------
+
     document.querySelectorAll(".engine").forEach(e=>{
         e.onclick = ()=>{
             document.querySelectorAll(".engine").forEach(x=>x.classList.remove("active"));
@@ -115,7 +118,10 @@
         };
     });
 
-    // Поиск
+    // --------------------------
+    // ПОИСК + ENTER
+    // --------------------------
+
     function search(){
         let q = document.getElementById("query").value.trim();
         if(!q) return;
@@ -126,36 +132,50 @@
         window.location.href = url;
     }
 
-    // -------------------------------------
+    // --------------------------
     // ЗАКЛАДКИ
-    // -------------------------------------
+    // --------------------------
 
     const bookmarksBox = document.getElementById("bookmarks");
+
     loadBookmarks();
 
-    // Правый клик на панели → создать закладку
+    // Создание закладки (ПКМ по панели)
     bookmarksBox.addEventListener("contextmenu", function(e){
         e.preventDefault();
         let name = prompt("Название закладки:");
         if(!name) return;
-        let url = prompt("URL закладки:");
+        let url = prompt("URL:");
         if(!url) return;
-
-        // Автоматический протокол
-        if(!url.startsWith("http://") && !url.startsWith("https://")){
-            url = "https://" + url;
-        }
 
         addBookmark(name, url);
     });
 
+    // Добавление закладки
     function addBookmark(name, url){
+        // Убираем весь мусор (пробелы, переносы строк и т.д.)
+        url = url.trim();
+
+        // Если пользователь ввёл youtube.com → делаем https://youtube.com
+        if(!/^https?:\/\//i.test(url)){
+            url = "https://" + url;
+        }
+
+        // Превращаем в абсолютный URL, чтобы GitHub Pages НЕ делал относительные пути
+        try {
+            url = new URL(url).href;
+        } catch {
+            alert("Некорректный URL");
+            return;
+        }
+
         let arr = JSON.parse(localStorage.getItem("bookmarks") || "[]");
         arr.push({name,url});
         localStorage.setItem("bookmarks", JSON.stringify(arr));
         renderBookmarks();
     }
 
+    // Рендер закладок
     function loadBookmarks(){
         renderBookmarks();
     }
@@ -163,13 +183,14 @@
     function renderBookmarks(){
         bookmarksBox.innerHTML = "";
         let arr = JSON.parse(localStorage.getItem("bookmarks") || "[]");
+
         arr.forEach(b=>{
             let a = document.createElement("a");
             a.className="bm";
             a.href=b.url;
             a.textContent=b.name;
 
-            // Удаление по правому клику
+            // Удаление закладки (ПКМ)
             a.addEventListener("contextmenu", (e)=>{
                 e.preventDefault();
                 if(confirm("Удалить закладку '"+b.name+"'?")){
@@ -181,12 +202,14 @@
         });
     }
 
+    // Удаление
     function removeBookmark(name){
         let arr = JSON.parse(localStorage.getItem("bookmarks") || "[]");
         arr = arr.filter(b=>b.name!==name);
         localStorage.setItem("bookmarks", JSON.stringify(arr));
         renderBookmarks();
     }
+
 </script>
 
 </body>
