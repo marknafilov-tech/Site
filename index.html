@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Start Page</title>
+<style>
+    body{
+        margin:0;
+        font-family:Arial, sans-serif;
+        display:flex;
+        flex-direction:column;
+        height:100vh;
+        background:#f2f2f2;
+    }
+
+    /* Панель закладок */
+    #bookmarks {
+        height:40px;
+        display:flex;
+        align-items:center;
+        padding:0 10px;
+        gap:10px;
+        background:#ffffffdd;
+        border-bottom:1px solid #ddd;
+        user-select:none;
+    }
+    .bm {
+        padding:6px 14px;
+        border-radius:6px;
+        background:#eee;
+        cursor:pointer;
+        text-decoration:none;
+        color:#000;
+        transition:0.2s;
+    }
+    .bm:hover { background:#dcdcdc; }
+
+    .center{
+        flex:1;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:20px;
+    }
+
+    .search-box{
+        width:50%;
+        min-width:260px;
+        max-width:520px;
+        display:flex;
+        border:1px solid #ccc;
+        border-radius:30px;
+        background:#fff;
+        padding:10px 20px;
+        box-shadow:0 2px 10px rgba(0,0,0,0.08);
+    }
+    .search-box input{
+        border:none;
+        outline:none;
+        width:100%;
+        font-size:18px;
+    }
+    .search-box button{
+        border:none;
+        background:transparent;
+        cursor:pointer;
+        font-size:18px;
+    }
+
+    #engines { display:flex; gap:10px; }
+    .engine{
+        padding:6px 12px;
+        background:#fff;
+        border:1px solid #ddd;
+        border-radius:8px;
+        cursor:pointer;
+        transition:0.2s;
+        font-size:14px;
+    }
+    .engine.active{
+        background:#4285f4;
+        color:#fff;
+        border-color:#4285f4;
+    }
+</style>
+</head>
+<body>
+
+<div id="bookmarks"></div>
+
+<div class="center">
+    <div class="search-box">
+        <input id="query" type="text" placeholder="Поиск..." onkeydown="if(event.key==='Enter') search()">
+        <button onclick="search()">🔍</button>
+    </div>
+
+    <div id="engines">
+        <div class="engine active" data="google">Google</div>
+        <div class="engine" data="bing">Bing</div>
+        <div class="engine" data="yahoo">Yahoo</div>
+    </div>
+</div>
+
+<script>
+    let engine = "google";
+
+    // Смена поисковика
+    document.querySelectorAll(".engine").forEach(e=>{
+        e.onclick = ()=>{
+            document.querySelectorAll(".engine").forEach(x=>x.classList.remove("active"));
+            e.classList.add("active");
+            engine = e.getAttribute("data");
+        };
+    });
+
+    // Поиск + обработка Enter
+    function search(){
+        let q = document.getElementById("query").value.trim();
+        if(!q) return;
+        let url="";
+        if(engine==="google") url="https://www.google.com/search?q="+q;
+        if(engine==="bing")   url="https://www.bing.com/search?q="+q;
+        if(engine==="yahoo")  url="https://search.yahoo.com/search?p="+q;
+        window.location.href = url;
+    }
+
+    // -------- ЗАКЛАДКИ --------
+
+    const bookmarksBox = document.getElementById("bookmarks");
+    loadBookmarks();
+
+    // Правый клик по панели → диалог создания закладки
+    bookmarksBox.addEventListener("contextmenu", function(e){
+        e.preventDefault();
+        let name = prompt("Название закладки:");
+        if(!name) return;
+        let url = prompt("URL закладки:");
+        if(!url) return;
+        addBookmark(name, url);
+    });
+
+    function addBookmark(name, url){
+        let arr = JSON.parse(localStorage.getItem("bookmarks") || "[]");
+        arr.push({name,url});
+        localStorage.setItem("bookmarks", JSON.stringify(arr));
+        renderBookmarks();
+    }
+
+    function loadBookmarks(){
+        renderBookmarks();
+    }
+
+    function renderBookmarks(){
+        bookmarksBox.innerHTML = "";
+        let arr = JSON.parse(localStorage.getItem("bookmarks") || "[]");
+        arr.forEach(b=>{
+            let a = document.createElement("a");
+            a.className="bm";
+            a.href=b.url;
+            a.textContent=b.name;
+
+            // Удаление по правому клику
+            a.addEventListener("contextmenu", (e)=>{
+                e.preventDefault();
+                if(confirm("Удалить закладку '"+b.name+"'?")){
+                    removeBookmark(b.name);
+                }
+            });
+
+            bookmarksBox.appendChild(a);
+        });
+    }
+
+    function removeBookmark(name){
+        let arr = JSON.parse(localStorage.getItem("bookmarks") || "[]");
+        arr = arr.filter(b=>b.name!==name);
+        localStorage.setItem("bookmarks", JSON.stringify(arr));
+        renderBookmarks();
+    }
+</script>
+
+</body>
+</html>
