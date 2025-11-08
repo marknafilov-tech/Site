@@ -87,6 +87,7 @@
 </head>
 <body>
 
+<!-- ПУСТАЯ панель закладок -->
 <div id="bookmarks"></div>
 
 <div class="center">
@@ -105,7 +106,7 @@
 <script>
     let engine = "google";
 
-    // Смена поисковика
+    // Смена поисковиков
     document.querySelectorAll(".engine").forEach(e=>{
         e.onclick = ()=>{
             document.querySelectorAll(".engine").forEach(x=>x.classList.remove("active"));
@@ -114,7 +115,7 @@
         };
     });
 
-    // Поиск + обработка Enter
+    // Поиск
     function search(){
         let q = document.getElementById("query").value.trim();
         if(!q) return;
@@ -125,18 +126,26 @@
         window.location.href = url;
     }
 
-    // -------- ЗАКЛАДКИ --------
+    // -------------------------------------
+    // ЗАКЛАДКИ
+    // -------------------------------------
 
     const bookmarksBox = document.getElementById("bookmarks");
     loadBookmarks();
 
-    // Правый клик по панели → диалог создания закладки
+    // Правый клик на панели → создать закладку
     bookmarksBox.addEventListener("contextmenu", function(e){
         e.preventDefault();
         let name = prompt("Название закладки:");
         if(!name) return;
         let url = prompt("URL закладки:");
         if(!url) return;
+
+        // Автоматический протокол
+        if(!url.startsWith("http://") && !url.startsWith("https://")){
+            url = "https://" + url;
+        }
+
         addBookmark(name, url);
     });
 
